@@ -1,1 +1,1 @@
-curl http://localhost:8000/api/movies | jq .
+curl http://localhost:8000/api/movies
