@@ -124,6 +124,8 @@ async def create_user_event(event: UserEvent):
 async def create_payment_event(event: PaymentEvent):
     topic = "payment-events"
     value = event.model_dump_json().encode()
+    logger.info(f"Event received: {event}")
+
     try:
         await produce_msg(logger, cfg.kafka_brokers, topic, value)
         await consume_msg(logger, cfg.kafka_brokers, topic)
