@@ -1,13 +1,11 @@
 import asyncio
 import datetime
-import json
 import logging
 from typing import Type
 
 import uvicorn
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer, ConsumerRecord
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse
 
 from config import cfg
 from logging_config import LOG_LEVEL, logging
