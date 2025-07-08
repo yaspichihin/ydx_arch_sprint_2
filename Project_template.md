@@ -635,21 +635,14 @@ kubectl -n cinemaabyss get pod
 Будет наподобие такого
 
 ```bash
-  NAME                              READY   STATUS
-
-  events-service-7587c6dfd5-6whzx   1/1     Running
-
-  kafka-0                           1/1     Running
-
-  monolith-8476598495-wmtmw         1/1     Running
-
-  movies-service-6d5697c584-4qfqs   1/1     Running
-
-  postgres-0                        1/1     Running
-
-  proxy-service-577d6c549b-6qfcv    1/1     Running
-
-  zookeeper-0                       1/1     Running
+NAME                              READY   STATUS
+events-service-7587c6dfd5-6whzx   1/1     Running
+kafka-0                           1/1     Running
+monolith-8476598495-wmtmw         1/1     Running
+movies-service-6d5697c584-4qfqs   1/1     Running
+postgres-0                        1/1     Running
+proxy-service-577d6c549b-6qfcv    1/1     Running
+zookeeper-0                       1/1     Running
 ```
 
 8. Добавим ingress
@@ -680,7 +673,7 @@ minikube tunnel
 12. Запустите тесты из папки tests/postman
 
 ```bash
- npm run test:kubernetes
+npm run test:kubernetes
 ```
 
 Часть тестов с health-чек упадет, но создание событий отработает.
@@ -689,6 +682,110 @@ minikube tunnel
 #### Шаг 3
 
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и скриншот вывода event-service после вызова тестов.
+
+
+Запрос http://cinemaabyss.example.com/api/movies
+```bash
+$ curl http://cinemaabyss.example.com/api/movies | jq .
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1267  100  1267    0     0  72251      0 --:--:-- --:--:-- --:--:-- 74529
+[
+  {
+    "id": 1,
+    "title": "The Shawshank Redemption",
+    "description": "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+    "genres": [
+      "Drama"
+    ],
+    "rating": 9.3
+  },
+  {
+    "id": 2,
+    "title": "The Godfather",
+    "description": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "rating": 9.2
+  },
+  {
+    "id": 3,
+    "title": "The Dark Knight",
+    "description": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+    "genres": [
+      "Action",
+      "Crime",
+      "Drama"
+    ],
+    "rating": 9
+  },
+  {
+    "id": 4,
+    "title": "Pulp Fiction",
+    "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "rating": 8.9
+  },
+  {
+    "id": 5,
+    "title": "Forrest Gump",
+    "description": "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75, whose only desire is to be reunited with his childhood sweetheart.",
+    "genres": [
+      "Drama",
+      "Romance"
+    ],
+    "rating": 8.8
+  }
+]
+```
+
+Вывод event-service после вызова тестов
+```bash
+$ kubectl logs events-service-76fc546df5-g6dgz -n cinemaabyss
+
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8082 (Press CTRL+C to quit)
+INFO:     10.244.0.1:45168 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:49862 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:49878 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:59486 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:59384 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.1:59386 - "GET /api/events/health HTTP/1.1" 200 OK
+INFO:     10.244.0.104:58580 - "GET /api/events/health HTTP/1.1" 200 OK
+2025-07-08 22:07:51 [INFO] main: Event sent to Kafka: RecordMetadata(topic='movie-events', partition=0, topic_partition=TopicPartition(topic='movie-events', partition=0), offset=1, timestamp=1752012471241, timestamp_type=0, log_start_offset=0)
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.subscription_state: Updating subscribed topics to: frozenset({'movie-events'})
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Discovered coordinator 1 for group temp-group-1752012471.244223
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Revoking previously assigned partitions set() for group temp-group-1752012471.244223
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: (Re-)joining group temp-group-1752012471.244223
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Joined group 'temp-group-1752012471.244223' (generation 1) with member_id aiokafka-0.12.0-006d9f29-6b2b-4da3-9d10-0344f4aa3df9
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Elected group leader -- performing partition assignments using roundrobin
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Successfully synced group temp-group-1752012471.244223 with generation 1
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Setting newly assigned partitions {TopicPartition(topic='movie-events', partition=0)} for group temp-group-1752012471.244223
+2025-07-08 22:07:51 [INFO] main: Event read from Kafka: ConsumerRecord(topic='movie-events', partition=0, offset=0, timestamp=1752012279924, timestamp_type=0, key=None, value=b'{"movie_id":6,"title":"Test Movie Event","action":"viewed","user_id":4,"rating":null,"genres":null,"description":null}', checksum=None, serialized_key_size=-1, serialized_value_size=118, headers=())
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: LeaveGroup request succeeded
+INFO:     10.244.0.104:58580 - "POST /api/events/movie HTTP/1.1" 201 Created
+2025-07-08 22:07:51 [INFO] main: Event sent to Kafka: RecordMetadata(topic='user-events', partition=0, topic_partition=TopicPartition(topic='user-events', partition=0), offset=1, timestamp=1752012471381, timestamp_type=0, log_start_offset=0)
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.subscription_state: Updating subscribed topics to: frozenset({'user-events'})
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Discovered coordinator 1 for group temp-group-1752012471.384297
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Revoking previously assigned partitions set() for group temp-group-1752012471.384297
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: (Re-)joining group temp-group-1752012471.384297
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Joined group 'temp-group-1752012471.384297' (generation 1) with member_id aiokafka-0.12.0-1819e58b-1504-4675-98cd-65c642801529
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Elected group leader -- performing partition assignments using roundrobin
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Successfully synced group temp-group-1752012471.384297 with generation 1
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: Setting newly assigned partitions {TopicPartition(topic='user-events', partition=0)} for group temp-group-1752012471.384297
+2025-07-08 22:07:51 [INFO] main: Event read from Kafka: ConsumerRecord(topic='user-events', partition=0, offset=0, timestamp=1752012280795, timestamp_type=0, key=None, value=b'{"user_id":4,"username":"testuser","email":null,"action":"logged_in","timestamp":"2025-07-08T22:04:40.787000Z"}', checksum=None, serialized_key_size=-1, serialized_value_size=111, headers=())
+2025-07-08 22:07:51 [INFO] aiokafka.consumer.group_coordinator: LeaveGroup request succeeded
+INFO:     10.244.0.104:58580 - "POST /api/events/user HTTP/1.1" 201 Created
+INFO:     10.244.0.104:58580 - "POST /api/events/payment HTTP/1.1" 422 Unprocessable Entity
+```
 
 # Задание 4
 
@@ -769,6 +866,120 @@ minikube tunnel
 Потом вызовите
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+Запрос http://cinemaabyss.example.com/api/movies
+```bash
+$ curl http://cinemaabyss.example.com/api/movies | jq .
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1865  100  1865    0     0  42377      0 --:--:-- --:--:-- --:--:-- 43372
+[
+  {
+    "id": 1,
+    "title": "The Shawshank Redemption",
+    "description": "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+    "genres": [
+      "Drama"
+    ],
+    "rating": 9.3
+  },
+  {
+    "id": 2,
+    "title": "The Godfather",
+    "description": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "rating": 9.2
+  },
+  {
+    "id": 3,
+    "title": "The Dark Knight",
+    "description": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+    "genres": [
+      "Action",
+      "Crime",
+      "Drama"
+    ],
+    "rating": 9
+  },
+  {
+    "id": 4,
+    "title": "Pulp Fiction",
+    "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "rating": 8.9
+  },
+  {
+    "id": 5,
+    "title": "Forrest Gump",
+    "description": "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75, whose only desire is to be reunited with his childhood sweetheart.",
+    "genres": [
+      "Drama",
+      "Romance"
+    ],
+    "rating": 8.8
+  },
+  {
+    "id": 6,
+    "title": "Test Movie 920",
+    "description": "A test movie created by automated tests",
+    "genres": [
+      "Action",
+      "Drama"
+    ],
+    "rating": 4.5
+  },
+  {
+    "id": 7,
+    "title": "Microservice Test Movie 816",
+    "description": "A test movie created by automated tests for the microservice",
+    "genres": [
+      "Sci-Fi",
+      "Thriller"
+    ],
+    "rating": 4.8
+  },
+  {
+    "id": 8,
+    "title": "Test Movie 729",
+    "description": "A test movie created by automated tests",
+    "genres": [
+      "Action",
+      "Drama"
+    ],
+    "rating": 4.5
+  },
+  {
+    "id": 9,
+    "title": "Microservice Test Movie 710",
+    "description": "A test movie created by automated tests for the microservice",
+    "genres": [
+      "Sci-Fi",
+      "Thriller"
+    ],
+    "rating": 4.8
+  }
+]
+```
+
+Приложите вывод развертывания helm
+```bash
+$ helm install cinemaabyss ./src/kubernetes/helm --namespace cinemaabyss --create-namespace
+
+NAME: cinemaabyss
+LAST DEPLOYED: Wed Jul  9 01:36:29 2025
+NAMESPACE: cinemaabyss
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
 
 ## Удаляем все
 
