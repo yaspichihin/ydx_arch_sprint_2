@@ -1,0 +1,44 @@
+@startuml
+
+title Кинобездна - Диаграмма контейнеров C4 (To-Be архитектура)
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "Использует различные устройства: ноутбуки, смарт ТВ, мобильные устройства")
+
+System_Boundary(cinema_system, "Система кинобездны") {
+  Container(web_app, "Веб приложение", "React/Angular", "Адаптивное веб-приложение для просмотра фильмов на различных устройствах")
+  Container(api_gateway, "API Gateway", "Kong/Envoy", "Единая точка входа, маршрутизация запросов, аутентификация, rate limiting")
+  Container(monolith, "Монолит (Legacy)", "Go", "Исходное монолитное приложение. Постепенно заменяется микросервисами")
+  Container(movies_service, "Movies Service", "Go", "Извлечен из монолита. Обрабатывает всю функциональность, связанную с фильмами (Метаданные фильмов, Рейтинги, Жанры)")
+  Container(events_service, "Events Service", "Kafka", "Коммуникацию между сервисами на основе событий.")
+  ContainerDb(db, "PostgreSQL", "DB", "Хранение данных (платежи, фильмы, пользователи")
+  Container(kafka, "Kafka", "Kafka", "Шина событий для микросервисов")
+  Container(s3, "S3", "", "Объектное хранилище")
+}
+
+System_Ext(recommendation_system, "Рекомендательная система")
+System_Ext(payment_system, "Платёжная система")
+
+Rel_D(user, web_app, "Просматривает контент", "HTTPS")
+Rel_D(web_app, api_gateway, "Запрашивает данные", "REST")
+Rel_D(api_gateway, monolith, "Маршрутизирует запросы к фильмам", "REST")
+Rel_D(api_gateway, movies_service, "Маршрутизирует запросы к фильмам", "REST")
+Rel_D(api_gateway, events_service, "Отправляет события", "Kafka")
+
+Rel_D(monolith, db, "Считать/записать данные")
+BiRel_D(monolith, kafka, "Считать/опубликовать события")
+Rel_D(monolith, s3, "Получить/добавить объекты")
+
+Rel_D(movies_service, db, "Считать/записать данные")
+BiRel_D(movies_service, kafka, "Считать/опубликовать события")
+Rel_D(movies_service, s3, "Получить/добавить объекты")
+
+Rel(events_service, kafka, "Читает события")
+Rel(events_service, db, "Обновляет данные")
+Rel(monolith, db, "Читает/пишет данные")
+Rel(monolith, payment_system, "Обрабатывает платежи", "REST")
+Rel(movies_service, payment_system, "Обрабатывает платежи", "REST")
+
+Rel(events_service, recommendation_system, "Отправляет данные для рекомендаций", "RabbitMQ")
+
+@enduml

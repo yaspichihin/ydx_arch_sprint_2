@@ -1,0 +1,5 @@
+aiokafka
+fastapi
+uvicorn[standard]
+pydantic-settings
+pydantic
